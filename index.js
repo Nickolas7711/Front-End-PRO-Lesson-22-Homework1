@@ -98,7 +98,7 @@ async function getMoney(userData, bankData) {
     } catch (err) {
         console.log(err);
     } finally {
-        console.log('Спасибо, хорошего дня 😊');
+        console.log('Дякуємо, гарного дня 😊');
     }
 }
 
