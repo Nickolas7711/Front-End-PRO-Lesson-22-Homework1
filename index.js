@@ -42,7 +42,7 @@ function getCurrencyBalance(userData) {
         function requestCurrency() {
             let currency = prompt(`Введіть назву валюти (${availableCurrencies.join(', ')}):`);
             if (currency === null) {
-            reject('Ви скасували введення назви валюти.');
+                reject('Ви скасували введення назви валюти.');
             } else {
                 currency = currency.toUpperCase();
                 if (userData.hasOwnProperty(currency)) {
@@ -73,33 +73,45 @@ function getAmountForWithdrawal(currency, bankData) {
     });
 }
 
-async function getMoney(userData, bankData) {
-    const mssCurrencyNotAvailable = 'Валюта відсутня у банкоматі.';
-
-    try {
-        const isViewBalance = await getUserInput('Переглянути баланс карти?');
-        if (isViewBalance) {
-            const currency = await getCurrencyBalance(userData, bankData);
-            console.log(`Баланс: ${userData[currency]} ${currency}`);
-        } else {
-            const currency = await getCurrencyBalance(userData, bankData);
-            try {
-                if (bankData.hasOwnProperty(currency)) {
-                    const amount = await getAmountForWithdrawal(currency, bankData);
-                    userData[currency] -= amount;
-                    console.log(`Ось ваша готівка: ${amount} ${currency} ${bankData[currency].img}`);
-                } else {
-                    console.log(mssCurrencyNotAvailable);
-                }
-            } catch (err) {
-                console.log(err);
+function getMoney(userData, bankData) {
+    
+    return getUserInput('Переглянути баланс карти?')
+        .then(isViewBalance => {
+            if (isViewBalance) {
+                return getCurrencyBalance(userData)
+                    .then(currency => {
+                        console.log(`Баланс: ${userData[currency]} ${currency}`);
+                    })
+                    .catch(err => {
+                        throw err;
+                    });
+            } else {
+                return getCurrencyBalance(userData)
+                    .then(currency => {
+                        if (bankData.hasOwnProperty(currency)) {
+                            return getAmountForWithdrawal(currency, bankData)
+                                .then(amount => {
+                                    userData[currency] -= amount;
+                                    console.log(`Ось ваша готівка: ${amount} ${currency} ${bankData[currency].img}`);
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                });
+                        } else {
+                            console.log('Валюта відсутня у банкоматі.');
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
             }
-        } 
-    } catch (err) {
-        console.log(err);
-    } finally {
-        console.log('Дякуємо, гарного дня 😊');
-    }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        .finally(() => {
+            console.log('Дякуємо, гарного дня 😊');
+        });
 }
 
 getMoney(userData, bankData);
